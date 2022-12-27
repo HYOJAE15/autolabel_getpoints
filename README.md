@@ -1,1 +1,1 @@
-# autolabel_getpoints
+# autolabel
