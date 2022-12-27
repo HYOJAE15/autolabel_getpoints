@@ -194,6 +194,7 @@ class AutoLabelButton :
                                f"overlap rate: {overlap_rate}"]
             
             # VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
+            # 좌표 저장 에러 해결, 마지막 좌표 저장 여부 확인 해라 (모든 경우)
             csvWriter = csv.writer(self.points)
             csvWriter.writerow(self.pointsList)
 
