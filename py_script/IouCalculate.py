@@ -3,6 +3,7 @@ import argparse
 
 from glob import glob 
 from tqdm import tqdm
+import csv
 
 import cv2
 import numpy as np
@@ -56,6 +57,11 @@ def main():
 
             IoU = intersection/union
             print(f"file: {os.path.basename(grd_path)}   IoU: {IoU}")
+            
+            # 계산된 결과를 .csv 파일로 저장해줍니다.
+            
+
+            
 
 
 

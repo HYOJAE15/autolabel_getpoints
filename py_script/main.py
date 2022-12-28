@@ -38,10 +38,11 @@ from components.widgets.treeView import TreeView
 from components.dnnModel.damage import DL_Model
 
 
-# sys.path.append("./dnn/mmsegmentation")
-# from mmseg.apis import init_segmentor, inference_segmentor
+sys.path.append("./dnn/mmsegmentation")
+from mmseg.apis import init_segmentor, inference_segmentor
 
 import time
+
 # Select folder "autolabel"
 # MainWindow UI
 project_ui = '../../ui_design/mainWindow.ui'
@@ -86,11 +87,11 @@ class MainWindow(QMainWindow, form_class_main,
         
         # 리스트위젯 에서 클릭된 클래스로 checkpoint 파일 불러오자 
 
-        # config_file = './dnn/checkpoints/2022.01.06 cgnet general crack 2048/cgnet_2048x2048_60k_CrackAsCityscapes.py'
-        # checkpoint_file = './dnn/checkpoints/2022.01.06 cgnet general crack 2048/iter_60000.pth'
-        # self.model = init_segmentor(config_file, 
-        #                             checkpoint_file, 
-        #                             device='cuda:0')
+        config_file = './dnn/checkpoints/2022.01.06 cgnet general crack 2048/cgnet_2048x2048_60k_CrackAsCityscapes.py'
+        checkpoint_file = './dnn/checkpoints/2022.01.06 cgnet general crack 2048/iter_60000.pth'
+        self.model = init_segmentor(config_file, 
+                                    checkpoint_file, 
+                                    device='cuda:0')
 
 
         # config_file_efflorescence = './dnn/checkpoints/2022.07.28_cgnet_1024x1024_concrete_efflorescence/cgnet_1024x1024_60k_cityscapes.py'
@@ -945,12 +946,12 @@ class MainWindow(QMainWindow, form_class_main,
         else :
             if self.label_segmentation == 1:
                 DL_Model.crackModel(self)
-            elif self.label_segmentation == 2:                  # train_8 : crack, rebar, spalling, effloresence
-                DL_Model.rebarExposureModel(self)               # 다른 데이터들 : crack, effloresence, rebar, spalling
-            elif self.label_segmentation == 3:
-                DL_Model.spallingModel(self)       
-            elif self.label_segmentation == 4:
+            elif self.label_segmentation == 2:
                 DL_Model.efflorescenceModel(self)
+            elif self.label_segmentation == 3:                  # train_8 : crack, rebar, spalling, effloresence
+                DL_Model.rebarExposureModel(self)               # 다른 데이터들 : crack, effloresence, rebar, spalling
+            elif self.label_segmentation == 4:
+                DL_Model.spallingModel(self)       
                 
 
     def getDlListWidgetIndex(self):
