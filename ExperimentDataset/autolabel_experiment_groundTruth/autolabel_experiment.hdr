@@ -1,0 +1,1 @@
+{"project_name": "autolabel_experiment", "folder_path": "D:/autolabel_experiment", "categories": [["Background", "[0, 0, 0]"], ["crack", "[255, 0, 0]"], ["effloresence", "[0, 255, 0]"], ["rebarExposure", "[255, 255, 0]"], ["spalling", "[0, 0, 255]"]]}

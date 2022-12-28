@@ -14,8 +14,8 @@ import csv
 
 from utils.utils import *
 
-sys.path.append("./dnn/mmsegmentation")
-from mmseg.apis import inference_segmentor
+# sys.path.append("./dnn/mmsegmentation")
+# from mmseg.apis import inference_segmentor
 
 
 
