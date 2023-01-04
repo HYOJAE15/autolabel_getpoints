@@ -8,12 +8,11 @@ future==0.18.2
 importlib-metadata==5.0.0
 kiwisolver==1.4.4
 matplotlib==3.5.3
-mmcv-full==1.6.2
 numpy==1.21.6
 opencv-python==4.6.0.66
 packaging==21.3
 pefile==2022.5.30
-Pillow @ file:///D:/bld/pillow_1660386017560/work
+Pillow==9.2.0
 prettytable==3.5.0
 pyinstaller==5.6.2
 pyinstaller-hooks-contrib==2022.13
@@ -27,11 +26,8 @@ PyYAML==6.0
 regex==2022.10.31
 scipy==1.7.3
 six==1.16.0
-torch==1.10.0
-torchaudio==0.10.0
-torchvision==0.11.0
 tqdm==4.64.1
-typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1665144421445/work
+typing_extensions==4.4.0
 wcwidth==0.2.5
 wincertstore==0.2
 yapf==0.32.0
