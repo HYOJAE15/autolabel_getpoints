@@ -1,2 +1,2 @@
 # autolabel_getpoints
-# automatic&speedy image labeling tool
+automatic&speedy image labeling tool

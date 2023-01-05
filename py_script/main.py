@@ -818,7 +818,8 @@ class MainWindow(QMainWindow, form_class_main,
                 saveFolderName = os.path.dirname(self.imgPath)
                 saveImgName = os.path.basename(self.imgPath)
                 csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
-                os.remove(os.path.join(saveFolderName, csvImgName))
+                # csv 파일 존재 시 같이 삭제
+                # os.remove(os.path.join(saveFolderName, csvImgName))
             elif "csv" in self.dotSplit_imgPath:
                 os.remove(self.imgPath)
             
