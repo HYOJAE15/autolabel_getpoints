@@ -864,6 +864,10 @@ class MainWindow(QMainWindow, form_class_main,
 
     
     def wheelEventScroll(self, event):
+        """
+        FIXME: zoom in & out 시 이미지 위치 마우스 포인트에 고정 
+        마우스 휠 굴림량을 많이 줄 시 위치가 마우스 포인트가 아닌 다른 곳으로 튄다.
+        """
         
         self.mouseWheelAngleDelta = event.angleDelta().y() # -> 1 (up), -1 (down)
         if self.ControlKey:
@@ -871,6 +875,7 @@ class MainWindow(QMainWindow, form_class_main,
             if self.mouseWheelAngleDelta > 0: 
                 self.scale *= 1.1
                 width_tobe = self.mainImageViewer.geometry().width() * 1.1
+                print(f"self.mainImageViewer.geometry: {self.mainImageViewer.geometry()}")
                 height_tobe = self.mainImageViewer.geometry().height() * 1.1
             else : 
                 self.scale /= 1.1
