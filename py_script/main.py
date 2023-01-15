@@ -82,6 +82,7 @@ class MainWindow(QMainWindow, form_class_main,
         self.get_points_roi = False
         # get_points_roi Mode set_roi
         self.get_points_roi_setRec = False
+        self.stopwatch = False
         self.circle = True
         
         
@@ -527,8 +528,9 @@ class MainWindow(QMainWindow, form_class_main,
             print(QCursor().shape())
             QApplication.setOverrideCursor(Qt.OpenHandCursor)
 
+        
+        
         # get_points_roi가 1이라면 A, S 에 자동 손상 탐지 라벨링 기능 추가
-
         elif event.key() == 65 : # A Key
             
             # get_points_roi 활성화 
@@ -573,6 +575,22 @@ class MainWindow(QMainWindow, form_class_main,
 
             
     
+        # stopwatch tools
+        elif event.key() == 84 : # T Key 
+            # print("stopwatch")
+            # self.stopwatch = 1 - self.stopwatch
+            # print(f"stopwatch: {self.stopwatch}")
+            
+            if self.stopwatch == True :
+                self.stopwatch = False
+                self.stopwatchButton.setChecked(False)
+                self.openStopwatchDialog(event)
+                
+
+            elif self.stopwatch == False :
+                self.stopwatch = True
+                self.stopwatchButton.setChecked(True)
+                self.openStopwatchDialog(event)
 
         
         elif event.key() == 66 : # B Key
@@ -765,7 +783,7 @@ class MainWindow(QMainWindow, form_class_main,
                 # mode_w = writing 전용, 없는 파일은 만든다. 파일이 존재 해도 새로운 파일로 다시 덮어쓴다.
                 # mode_a(appending) = writing 전용, 없는 파일은 만든다. 존재하는 파일을 open시 새로운 행 추가 가능
 
-                self.csvImgName = self.saveImgName.replace("_leftImg8bit.png", ".csv")
+                # self.csvImgName = self.saveImgName.replace("_leftImg8bit.png", ".csv")
 
                 # open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="")
                 
@@ -967,7 +985,16 @@ class MainWindow(QMainWindow, form_class_main,
         
 
 if __name__ == "__main__" :
+
+    # Open Chalk window
     app = QApplication(sys.argv)
     myWindow = MainWindow() 
     myWindow.show()
+
+    # Open Stopwatch Window 
+    # ClockApp().run()
+    # LabelBase.register(name='Roboto',
+    #                 fn_regular='./font/Roboto-Thin.ttf',
+    #                 fn_bold='./font/Roboto-Medium.ttf')
+
     sys.exit(app.exec_())

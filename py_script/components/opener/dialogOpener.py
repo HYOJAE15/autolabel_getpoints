@@ -24,6 +24,45 @@ class dialogOpener :
         self.setCategoryDialog.createButton.clicked.connect(self.createProjectHeader)
         self.setCategoryDialog.exec()
 
+    def openStopwatchDialog (self, event):
+        print("opendialog: stopwatch")
+
+        
+        
+        from components.dialogs.stopwatchDialog import ClockApp
+        # from kivy.core.text import LabelBase
+
+        # ClockApp().run()
+        # LabelBase.register(name='Roboto',
+        #                 fn_regular='./font/Roboto-Thin.ttf',
+        #                 fn_bold='./font/Roboto-Medium.ttf')
+        
+        
+        # if self.stopwatch == True :
+        #     from components.dialogs.stopwatchDialog import ClockApp
+        #     from kivy.core.text import LabelBase
+            
+        #     ClockApp().run()
+        #     LabelBase.register(name='Roboto',
+        #                 fn_regular='./font/Roboto-Thin.ttf',
+        #                 fn_bold='./font/Roboto-Medium.ttf')
+
+        
+        # if self.stopwatch == False :
+        #     from components.dialogs.stopwatchDialog import ClockApp
+        #     from kivy.core.window import Window
+        #     from kivy.app import App
+            
+        #     ClockApp().run()
+        #     LabelBase.register(name='Roboto',
+        #                 fn_regular='./font/Roboto-Thin.ttf',
+        #                 fn_bold='./font/Roboto-Medium.ttf')
+
+
+        #     App.stop()
+        #     Window.close()
+            
+        
 
     def openBrushDialog(self, event):
 

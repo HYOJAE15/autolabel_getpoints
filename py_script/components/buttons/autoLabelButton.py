@@ -147,7 +147,7 @@ class AutoLabelButton :
             self.pixmap = QPixmap(cvtArrayToQImage(rect_256))
             self.resize_image()
 
-            # Create csv File
+            # Create csv file and save img coordinate, overlap rate
 
             print(f"autolabelScripts : {self.imgPath}" )
             self.saveFolderName = os.path.dirname(self.imgPath)
@@ -167,8 +167,8 @@ class AutoLabelButton :
             self.points = open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="")
 
             self.situationLabel.setText(self.csvImgName + "을(를) Coordinate 폴더에 저장하였습니다.")
-                
-
+            
+              
             # overlap rate
             overlap = open(os.path.join(self.saveFolderName, self.csvImgName), "r", encoding="cp949", newline="")
             overlap_list = csv.reader(overlap)
@@ -184,17 +184,20 @@ class AutoLabelButton :
             current_rectangle = abs(int(self.rect_end[0])-int(self.rect_start[0]))*abs(int(self.rect_end[1])-int(self.rect_start[1]))
             print(f"current_rectangle: {current_rectangle}")
 
+            
             overlap_rate = overlap_rectangle/current_rectangle    
             print(f"overlap_rate: {overlap_rate}")
-
+            
             self.pointsList = [self.rect_start[1], self.rect_end[1],
                                self.rect_start[0], self.rect_end[0],
                                f"x: {self.x_r256}", f"y: {self.y_r256}",
                                f"classIdx:{self.label_segmentation}",
-                               f"overlap rate: {overlap_rate}"]
-            
-            # VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
-            # 좌표 저장 에러 해결, 마지막 좌표 저장 여부 확인 해라 (모든 경우)
+                               f"overlap rate: "]
+            """
+            FIXME: 마지막 좌표 저장 여부 확인 하고 고쳐라 아니면 해결 방안 이라도/....
+            VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
+            좌표 저장 에러 해결, 마지막 좌표 저장 여부 확인 해라 (모든 경우)
+            """
             csvWriter = csv.writer(self.points)
             csvWriter.writerow(self.pointsList)
 
