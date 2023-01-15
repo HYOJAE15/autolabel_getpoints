@@ -10,7 +10,7 @@ from kivy.utils import get_color_from_hex
 
 class ClockApp(App):
     # 윈도우 설정
-    Window.size = (550, 350)
+    Window.size = (600, 400)
     Window.clearcolor = get_color_from_hex('#333300')
 
     sw_seconds = 0
@@ -28,7 +28,12 @@ class ClockApp(App):
                 if self.started else 'Stop')
         self.started = not self.started
         print(self.started)
-        print(self.sw_seconds)
+        print(f"self.sw_seconds: {self.sw_seconds}")
+        print(f"self.sw_seconds: {type(self.sw_seconds)}")
+        self.root.ids.stopwatch_sec.text = (
+            'LAP: %5.3f sec'%
+            (float(self.sw_seconds))
+        )
 
     def reset(self):
         if self.started:

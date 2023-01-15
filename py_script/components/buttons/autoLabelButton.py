@@ -192,7 +192,7 @@ class AutoLabelButton :
                                self.rect_start[0], self.rect_end[0],
                                f"x: {self.x_r256}", f"y: {self.y_r256}",
                                f"classIdx:{self.label_segmentation}",
-                               f"overlap rate: "]
+                               f"overlap rate: {overlap_rate}"]
             """
             FIXME: 마지막 좌표 저장 여부 확인 하고 고쳐라 아니면 해결 방안 이라도/....
             VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
