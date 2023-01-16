@@ -194,9 +194,10 @@ class AutoLabelButton :
                                f"classIdx:{self.label_segmentation}",
                                f"overlap rate: {overlap_rate}"]
             """
-            FIXME: 마지막 좌표 저장 여부 확인 하고 고쳐라 아니면 해결 방안 이라도/....
+            FIXME: 마지막 좌표 저장 여부 확인 하고 고쳐라 아니면 해결 방안 이라도 ...
             VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
             좌표 저장 에러 해결, 마지막 좌표 저장 여부 확인 해라 (모든 경우)
+            이미지 이동 후 다른 파일로 csv 파일을 읽으면 마지막 좌표 저장 가능 
             """
             csvWriter = csv.writer(self.points)
             csvWriter.writerow(self.pointsList)
@@ -451,6 +452,25 @@ class AutoLabelButton :
         self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
         self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
         self.resize_image()
+
+        
+          
+        
+
+        # self.rect_start_vi = [x_start, y_start]
+        # self.rect_end_vi = [x_end, y_end]
+
+        # thickness = 2    
+
+        # # 변수가 계속 살아남게 하여 이미지에 rect가 계속 쌓이는 형식
+        # self.colormap = cv2.rectangle(
+        #     self.colormap, self.rect_start_vi, self.rect_end_vi, (255, 255, 255), thickness)
+
+        # # print(f"rectangle size {rect_start, rect_end}")
+        # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+        # self.resize_image()
+        
+        
 
 
         

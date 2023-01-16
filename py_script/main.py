@@ -707,7 +707,7 @@ class MainWindow(QMainWindow, form_class_main,
             if hasattr(self, 'brushMenu'):
                 self.brushMenu.close()
             
-        elif event.key() == 74: # j key  test
+        elif event.key() == 74: # j key
             
 
             saveFolderName = os.path.dirname(self.imgPath)
@@ -716,10 +716,12 @@ class MainWindow(QMainWindow, form_class_main,
             saveFolderName = os.path.join(saveFolderName, "Coordinate")
             saveImgName = os.path.basename(self.imgPath)
                     
-            csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
-            
+            # csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
+            # 23.01.16 비교 실험 중 파일이름 오류 로 변경
+            csvImgName = saveImgName.replace("_leftImg8bit_leftImg8bit.png", "_leftImg8bit.csv")
             
             f = open(os.path.join(saveFolderName, csvImgName), "r", encoding="cp949", newline='')
+            # print(f"filepath!!: {os.path.join(saveFolderName, csvImgName)}")
             data = csv.reader(f)
             self.getPointsList = []
 
@@ -738,6 +740,26 @@ class MainWindow(QMainWindow, form_class_main,
                 print(f"idx[0] {idx[0]} {type(idx[0])}")
                 print(f"idx[0] {int(idx[0])} {type(int(idx[0]))}")
                 AutoLabelButton.pointsRoi(self, int(idx[0]), int(idx[1]), int(idx[2]), int(idx[3]))
+                
+            """
+            저장된 좌표의 탐지 결과와 ROI도 같이 보고 싶을때 사용
+            """
+            # 자동 탐지 라벨링 시 blendImageWithColorMap 함수를 통과 하면서
+            # cv2.rectangle 했던 이미지가 없어짐, 블렌딩시 gt와 left 만 섞어서 쓰기때문
+            for idx in self.getPointsList:
+                print("자동 탐지 라벨링 흔적")
+                rect_start = [int(idx[2]), int(idx[0])]
+                rect_end = [int(idx[3]), int(idx[1])]
+
+                thickness = 2    
+
+                # 변수가 계속 살아남게 하여 이미지에 rect가 계속 쌓이는 형식
+                self.colormap = cv2.rectangle(
+                    self.colormap, rect_start, rect_end, (255, 255, 255), thickness)
+
+                # print(f"rectangle size {rect_start, rect_end}")
+                self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                self.resize_image()
                 
                 
                 # result = inference_segmentor(self.model, self.img[int(idx[0]): int(idx[1]), 
