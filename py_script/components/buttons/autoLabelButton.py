@@ -100,19 +100,48 @@ class AutoLabelButton :
         try : 
 
             self.x_r256, self.y_r256 = getScaledPoint(event, self.scale)
-            if self.x_r256 < 128 and self.y_r256 < 128 :
-                self.rect_start = 0, 0
-                self.rect_end = self.x_r256+128, self.y_r256+128
-            elif self.x_r256 < 128 :
-                self.rect_start = 0, self.y_r256-128
-                self.rect_end = self.x_r256+128, self.y_r256+128
-            elif self.y_r256 < 128 :
-                self.rect_start = self.x_r256-128, 0
-                self.rect_end = self.x_r256+128, self.y_r256+128 
-            else :
-                self.rect_start = self.x_r256-128, self.y_r256-128
-                self.rect_end = self.x_r256+128, self.y_r256+128
+            
+            """
+            ROI가 이미지 좌표계를 넘어가는 경우 8가지와 박스가 이미지 내부에서 생성되는 경우 
+            총 9가지 경우의 생각 이미지 좌표계는 (x, y) cv2로 읽으면 (y, x)
+            """
+            # 이미지 좌측 상단
+            if self.x_r256 <= 128 and self.y_r256 <= 128 :
+                print(f"이미지 좌측 상단")
+                self.rect_start = [0, 0]
+                self.rect_end = [self.x_r256+128, self.y_r256+128]
+            
+            # 이미지 하단 중앙
 
+            # 이미지 좌측 (중앙, 하단)
+            elif self.x_r256 < 128 and self.y_r256 > 128 :
+                print(f"이미지 좌측 (중앙, 하단)")
+                self.rect_start = [0, self.y_r256-128]
+                # self.rect_end = self.x_r256+128, self.y_r256+128
+                self.rect_end = [self.x_r256+128, self.y_r256+128] if self.img.shape[0]>=(self.y_r256+128) else [self.x_r256+128, self.img.shape[0]]
+                print(f"클릭한 좌표: {self.x_r256, self.y_r256}")
+                print(f"이미지 좌측 중단: {self.rect_end}")
+
+            # 이미지 우측 (중앙, 하단)
+            elif self.x_r256+128 > self.img.shape[1] and self.y_r256-128 >= 0 :
+                print(f"이미지 우측 (중앙, 하단)") 
+                self.rect_start = [self.x_r256-128, self.y_r256-128]
+                self.rect_end = [self.img.shape[1], self.y_r256+128] if (self.y_r256+128)<self.img.shape[0] else [self.img.shape[1], self.img.shape[0]] 
+                print(f"self.rect_end: {self.rect_end}")
+
+            # 이미지 상단 (중앙, 우측)
+            elif self.y_r256 < 128 and self.x_r256 > 128 :
+                print(f"이미지 상단 (중앙, 우측)")
+                self.rect_start = [self.x_r256-128, 0]
+                # self.rect_end = self.x_r256+128, self.y_r256+128
+                self.rect_end = [self.x_r256+128, self.y_r256+128] if self.img.shape[1]>=(self.x_r256+128) else [self.img.shape[1], self.y_r256+128] 
+            
+            # 이미지 내부, 이미지 하단 중앙
+            else :
+                print(f"이미지 내부, 이미지 하단 중앙")
+                self.rect_start = [self.x_r256-128, self.y_r256-128]
+                # self.rect_end = [self.x_r256+128, self.y_r256+128]
+                self.rect_end = [self.x_r256+128, self.img.shape[0]] if (self.y_r256+128)>self.img.shape[0] else [self.x_r256+128, self.y_r256+128]
             
             result = inference_segmentor(self.model, self.img[self.rect_start[1]: self.rect_end[1],
                                             self.rect_start[0]: self.rect_end[0], :])
@@ -143,12 +172,25 @@ class AutoLabelButton :
             rect_256 = cv2.rectangle(
                 self.colormap.copy(), self.rect_start, self.rect_end, (255, 255, 255), thickness)
 
+            # rect_256 = cv2.rectangle(
+            #     self.colormap.copy(), self
+            # )
+
             print(f"rectangle size {self.rect_start, self.rect_end}")
             self.pixmap = QPixmap(cvtArrayToQImage(rect_256))
             self.resize_image()
 
+            """
+            좌표 저장 모드 시 csv 파일 생성과 Overlap Rate(OR) 측정
+            """
+            """
+            FIXME: 마지막 좌표 저장 여부 확인 하고 고쳐라 아니면 해결 방안 이라도 ...
+            VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
+            좌표 저장 에러 해결, 마지막 좌표 저장 여부 확인 해라 (모든 경우)
+            이미지 이동 후 다른 파일로 csv 파일을 읽으면 마지막 좌표 저장 가능 
+            """
+            
             # Create csv file and save img coordinate, overlap rate
-
             print(f"autolabelScripts : {self.imgPath}" )
             self.saveFolderName = os.path.dirname(self.imgPath)
             self.saveFolderName = os.path.dirname(self.saveFolderName)
@@ -188,17 +230,14 @@ class AutoLabelButton :
             overlap_rate = overlap_rectangle/current_rectangle    
             print(f"overlap_rate: {overlap_rate}")
             
+            print(f"currentimgshape: {self.img.shape}")
+
             self.pointsList = [self.rect_start[1], self.rect_end[1],
                                self.rect_start[0], self.rect_end[0],
                                f"x: {self.x_r256}", f"y: {self.y_r256}",
                                f"classIdx:{self.label_segmentation}",
                                f"overlap rate: {overlap_rate}"]
-            """
-            FIXME: 마지막 좌표 저장 여부 확인 하고 고쳐라 아니면 해결 방안 이라도 ...
-            VSD로 종료 시 마지막 좌표 저장 안됨, GUI창 닫힘 버튼을 눌러서 종료해야 마지막 좌표 저장  
-            좌표 저장 에러 해결, 마지막 좌표 저장 여부 확인 해라 (모든 경우)
-            이미지 이동 후 다른 파일로 csv 파일을 읽으면 마지막 좌표 저장 가능 
-            """
+            
             csvWriter = csv.writer(self.points)
             csvWriter.writerow(self.pointsList)
 

@@ -537,6 +537,8 @@ class MainWindow(QMainWindow, form_class_main,
             if self.get_points_roi == True :
                 
                 self.get_points_roi_setRec = False
+                self.auto_256.setChecked(True)
+                self.auto_sr.setChecked(False)
             
             
             # get_points_roi 비활성화
@@ -681,10 +683,14 @@ class MainWindow(QMainWindow, form_class_main,
             if self.get_points_roi : 
                 self.roiAutoLabelButton.setChecked(True)
                 self.getPointsButton.setChecked(True)
+                self.auto_256.setChecked(True)
+                self.auto_sr.setChecked(False)
 
             else : 
                 self.roiAutoLabelButton.setChecked(False)
                 self.getPointsButton.setChecked(False)
+                self.auto_256.setChecked(False)
+                self.auto_sr.setChecked(False)
 
             if self.set_roi_256 :
                 self.set_roi_256 = False
@@ -845,6 +851,8 @@ class MainWindow(QMainWindow, form_class_main,
                 
                 # self.get_points_roi 활성화된 상태를 유지 하면서 setRec와 256 넘나들기
                 self.get_points_roi_setRec = True
+                self.auto_256.setChecked(False)
+                self.auto_sr.setChecked(True)
                 # self.get_points_roi = False
 
         # Delete Image
