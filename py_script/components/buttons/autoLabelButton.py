@@ -105,8 +105,10 @@ class AutoLabelButton :
             NOTE: 256*256 Automatic Labeling on Getpoints Mode Calculation Coordinate
 
             FIXME: 이미지 가장자리쪽을 Auto Labeling 시 좌표를 이미지 shape 넘어서 받는다.
-            TODO: ROI가 이미지 좌표계를 넘어가는 경우 8가지와 박스가 이미지 내부에서 생성되는 경우 
-            총 9가지 경우의 생각 이미지 좌표계는 (x, y) cv2로 읽으면 (y, x)
+            TODO: 
+            1. ROI가 이미지 좌표계를 넘어가는 경우 8가지와 박스가 이미지 내부에서 생성되는 경우 
+                총 9가지 경우의 생각 이미지 좌표계는 (x, y) cv2로 읽으면 (y, x)
+            2. np.clip으로 image shape크기로 제한을 주어서 해결
             """
             # 이미지 좌측 상단
             if self.x_r256 <= 128 and self.y_r256 <= 128 :
