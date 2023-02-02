@@ -304,7 +304,8 @@ class AutoLabelButton :
                                self.rect_start[0], self.rect_end[0],
                                f"x: {self.x_r256}", f"y: {self.y_r256}",
                                f"classIdx:{self.label_segmentation}",
-                               f"overlap rate:{self.overlap_rate}"]
+                               f"overlap rate:",
+                               f"{self.overlap_rate}"]
             
             csvWriter = csv.writer(self.points)
             csvWriter.writerow(self.pointsList)
@@ -484,7 +485,8 @@ class AutoLabelButton :
                            self.rect_start_GP[0], self.rect_end_GP[0],
                            f"x: ", f"y: ",
                            f"class idx:{self.label_segmentation}",
-                           f"overlap rate: {self.overlap_rate}"]
+                           f"overlap rate:",
+                           f"{self.overlap_rate}"]
         
         csvWriter = csv.writer(self.points)
         csvWriter.writerow(self.pointsList)

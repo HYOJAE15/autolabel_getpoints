@@ -576,7 +576,10 @@ class MainWindow(QMainWindow, form_class_main,
                     self.brushMenu.close()
 
             
-    
+        elif event.key() == 89 : # Y key 
+            print(f"self.se_seconds: ")
+            
+
         # stopwatch tools
         elif event.key() == 84 : # T Key 
             # print("stopwatch")

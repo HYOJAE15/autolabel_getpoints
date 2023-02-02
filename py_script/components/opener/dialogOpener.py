@@ -28,8 +28,14 @@ class dialogOpener :
         print("opendialog: stopwatch")
 
         
+        if self.stopwatch :
+
+            from components.dialogs.stopwatchDialog import ClockApp
         
-        from components.dialogs.stopwatchDialog import ClockApp
+        elif self.stopwatch == False:
+            
+            del ClockApp
+        
         # from kivy.core.text import LabelBase
 
         # ClockApp().run()
