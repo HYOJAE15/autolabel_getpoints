@@ -29,6 +29,8 @@ def main():
     grd_gtf_list = glob(os.path.join(groundTruth_path, '*', '*.png'))
     atl_gtf_list = glob(os.path.join(autoLabel_path, '*', '*.png'))
 
+    IoU_list = []
+    IoU_value_list = []
 
     for grd_path, atl_path in zip(grd_gtf_list, atl_gtf_list):
         # print(f"grd_path: {grd_path} atl_path: {atl_path}")
@@ -57,6 +59,13 @@ def main():
 
             IoU = intersection/union
             print(f"file: {os.path.basename(grd_path)},IoU: {IoU}")
+            IoU_list.append([os.path.basename(grd_path), IoU])
+            IoU_value_list.append(IoU)
+    
+    # print(f"iou list: {IoU_list}")
+    print(f"mIoU: {np.mean(IoU_value_list)}({np.mean(IoU_value_list)*100}%)")
+            
+            
             
             # 계산된 결과를 .csv 파일로 저장해줍니다.
             

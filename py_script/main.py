@@ -694,6 +694,7 @@ class MainWindow(QMainWindow, form_class_main,
                 self.getPointsButton.setChecked(False)
                 self.auto_256.setChecked(False)
                 self.auto_sr.setChecked(False)
+                self.get_points_roi_setRec = False
 
             if self.set_roi_256 :
                 self.set_roi_256 = False
@@ -1000,7 +1001,7 @@ class MainWindow(QMainWindow, form_class_main,
         if self.use_brush :
             print("Brush")
 
-        else :
+        elif self.set_roi or self.set_roi_256 or self.get_points_roi or self.get_points_roi_setRec :
             if self.label_segmentation == 1:
                 DL_Model.crackModel(self)
             elif self.label_segmentation == 2:
