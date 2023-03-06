@@ -726,9 +726,9 @@ class MainWindow(QMainWindow, form_class_main,
             saveFolderName = os.path.join(saveFolderName, "Coordinate")
             saveImgName = os.path.basename(self.imgPath)
                     
-            # csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
+            csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
             # 23.01.16 비교 실험 중 파일이름 오류 로 변경
-            csvImgName = saveImgName.replace("_leftImg8bit_leftImg8bit.png", "_leftImg8bit.csv")
+            # csvImgName = saveImgName.replace("_leftImg8bit_leftImg8bit.png", "_leftImg8bit.csv")
             
             f = open(os.path.join(saveFolderName, csvImgName), "r", encoding="cp949", newline='')
             # print(f"filepath!!: {os.path.join(saveFolderName, csvImgName)}")
