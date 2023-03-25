@@ -176,12 +176,24 @@ def main():
             
                             
             
-            
+    MOR_damage_list = [MOR_crack_idx, MOR_efflorescence_idx, MOR_rebarexposure_idx, MOR_spalling_idx]
+    
+
+    for i in MOR_damage_list:
+        iou_list =[]    
+        for i_Mdl in i:
+            iou_list.append(MOR_list[i_Mdl][-1])
+        mIoU=sum(iou_list)/len(iou_list)
+        print(i)
+        print(mIoU)
+        iou_idx = i[-1]
+        MOR_list[iou_idx].append(mIoU)
+
 
 
         
     # comparativeAnalysis = open(os.path.join(comparativeData_path, "analysisData.csv"), "w", encoding="cp949", newline="")
-    fields = ["File", "Num of detect", "MOR", "auto time (sec)", "manual time (sec)", "IR", "IoU"]
+    fields = ["File", "Num of detect", "MOR", "auto time (sec)", "manual time (sec)", "IR", "IoU", "mIoU"]
     
     analysisData_filename = f"{labeler_name}_analysisData.csv"
     # analysisData_filename.format(name=labeler_name)
