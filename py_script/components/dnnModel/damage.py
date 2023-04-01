@@ -25,14 +25,10 @@ class DL_Model :
                                     checkpoint_file, 
                                     device='cuda:0')
 
-        config_file_general_road = './dnn/checkpoints/2022.01.11 cgnet general+road crack/cgnet_2048x2048_60k_CrackAsCityscapes.py'
-        checkpoint_file_general_road = './dnn/checkpoints/2022.01.11 cgnet general+road crack/iter_80000.pth'
-        self.model_general_road = init_segmentor(config_file_general_road, 
-                                    checkpoint_file_general_road, 
-                                    device='cuda:0')
+        
 
 
-        model_list = ["crack_general", "crack_general+road"]
+        model_list = ["crack_model_1"]
 
         self.DL_listWidget.clear()
         
@@ -43,7 +39,7 @@ class DL_Model :
         self.DL_listWidget.setCurrentRow(0)
         self.DL_class = self.DL_listWidget.currentRow()
 
-        self.model_list = [self.model, self.model_general_road]
+        self.model_list = [self.model]
 
 
     def efflorescenceModel (self):
@@ -54,14 +50,10 @@ class DL_Model :
                                     checkpoint_file_efflorescence,
                                     device='cuda:0')
 
-        config_file_efflorescence_2 = './dnn/checkpoints/cgnet_1024x1024_60k_cityscapes_efflorescence_crop/cgnet_1024x1024_60k_cityscapes_efflorescence_crop.py'
-        checkpoint_file_efflorescence_2 = './dnn/checkpoints/cgnet_1024x1024_60k_cityscapes_efflorescence_crop/iter_60000.pth'
-        self.model_crop = init_segmentor(config_file_efflorescence_2, 
-                                         checkpoint_file_efflorescence_2,
-                                         device='cuda:0')
+        
 
 
-        model_list = ["efflorescence_model_1", "efflorescence_model_2"]
+        model_list = ["efflorescence_model_1"]
 
         self.DL_listWidget.clear()
         
@@ -73,7 +65,7 @@ class DL_Model :
         print(f"dl_list {self.DL_listWidget.currentRow()}")
         self.DL_class = self.DL_listWidget.currentRow()
 
-        self.model_list = [self.model, self.model_crop]
+        self.model_list = [self.model]
 
         
         

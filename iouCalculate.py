@@ -50,7 +50,7 @@ def main():
         atl_gtf[atl_gtf == target_class_num] = 1 
 
         
-        if [1] in np.unique(grd_gtf) :
+        if [1] in np.unique(grd_gtf) or [1] in np.unique(atl_gtf) :
 
             # 교집합
             intersection = cv2.countNonZero(cv2.bitwise_and(grd_gtf, atl_gtf))
