@@ -36,30 +36,49 @@ class AutoLabelButton :
         self.use_erase = False
 
         self.set_roi = False
-
-        self.get_points_roi = False
+        
+        self.set_roi_full = False
 
         self.set_roi_256 = True
+
+        self.get_points_roi = False
 
 
     def roiRec(self):
         self.brushButton.setChecked(False)
         self.roiAutoLabelButton.setChecked(True)
         self.getPointsButton.setChecked(False)
-        print(f"self.use_brush {self.use_brush}")
-
+        
         self.use_brush = False
 
         self.use_erase = False
 
         self.set_roi = True
-        
-        self.get_points_roi = False
 
+        self.set_roi_full = False
+        
         self.set_roi_256 = False
 
-        print(f"self.set_roi {self.set_roi}")
-        print(f"self.use_brush {self.use_brush}")
+        self.get_points_roi = False
+
+        
+    def fullImg(self):
+        self.brushButton.setChecked(False)
+        self.roiAutoLabelButton.setChecked(True)
+        self.getPointsButton.setChecked(False)
+        
+        self.use_brush = False
+
+        self.use_erase = False
+
+        self.set_roi = False
+
+        self.set_roi_full = True
+        
+        self.set_roi_256 = False
+
+        self.get_points_roi = False
+
 
     def getPoints(self):
         print("getPoints")
@@ -512,14 +531,16 @@ class AutoLabelButton :
                 self.rect_start = self.x_r256-128, self.y_r256-128
                 self.rect_end = self.x_r256+128, self.y_r256+128
 
-            
-            result = inference_segmentor(self.model, self.img[self.rect_start[1]: self.rect_end[1],
-                                            self.rect_start[0]: self.rect_end[0], :])
+            src = self.img[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :]
+
+            result = inference_segmentor(self.model, src)
 
             print(f'modelListindex {self.label_segmentation-1}')
 
-            cv2.imshow("cropImage", self.img[self.rect_start[1]: self.rect_end[1],
-                                            self.rect_start[0]: self.rect_end[0], :])
+            cv2.imshow("cropImage", src)
+            dst = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+
+            cv2.imshow("cropImage_bgr", dst)
             
 
             print(f'cropImage.shape {self.img[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :].shape}')
@@ -549,6 +570,26 @@ class AutoLabelButton :
         except ZeroDivisionError as e :
             print(e)
 
+    def roiFullPressPoint(self, event):
+
+        try : 
+            
+            src = self.img
+            result = inference_segmentor(self.model, src)
+
+            idx = np.argwhere(result[0] == 1)
+            y_idx, x_idx = idx[:, 0], idx[:, 1]
+            
+            self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+            
+            self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+            self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+            self.resize_image()
+
+
+            
+        except ZeroDivisionError as e :
+            print(e)
         
     def roiPressPoint(self, event):
 
@@ -599,8 +640,11 @@ class AutoLabelButton :
         self.rect_end[0] = np.clip(self.rect_end[0], 0, self.label.shape[1])
         self.rect_end[1] = np.clip(self.rect_end[1], 0, self.label.shape[0])
             
+        src = self.img[self.rect_start[1]: y, self.rect_start[0]: x, :]
+        src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+        dst = histEqualization_hsv(src)
 
-        result = inference_segmentor(self.model, self.img[self.rect_start[1]: y, self.rect_start[0]: x, :])
+        result = inference_segmentor(self.model, src)
 
         idx = np.argwhere(result[0] == 1)
         y_idx, x_idx = idx[:, 0], idx[:, 1]
@@ -629,10 +673,12 @@ class AutoLabelButton :
         #     self.rect_start = self.x_r256-128, self.y_r256-128
         #     self.rect_end = self.x_r256+128, self.y_r256+128
 
-        
-        result = inference_segmentor(self.model, self.img[y_start: y_end,
-                                        x_start: x_end, :])
+        src = self.img[y_start: y_end, x_start: x_end, :]
+        src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+        cv2.imshow("src", src)
 
+        result = inference_segmentor(self.model, src)
+        
         idx = np.argwhere(result[0] == 1)
         y_idx, x_idx = idx[:, 0], idx[:, 1]
         x_idx = x_idx + x_start
@@ -661,7 +707,62 @@ class AutoLabelButton :
         # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
         # self.resize_image()
         
+    def pointsRoi_histEq_gr(self, y_start, y_end, x_start, x_end):
+               
+        src = self.img[y_start: y_end, x_start: x_end, :]
+        dst = histEqualization_gr(src)
+        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
+        result = inference_segmentor(self.model, dst)
+        cv2.imshow("dst", dst)
+
+        idx = np.argwhere(result[0] == 1)
+        y_idx, x_idx = idx[:, 0], idx[:, 1]
+        x_idx = x_idx + x_start
+        y_idx = y_idx + y_start
+
+        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
         
+        self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+        self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+        self.resize_image()
+
+    def pointsRoi_histEq_ycc(self, y_start, y_end, x_start, x_end):
+               
+        src = self.img[y_start: y_end, x_start: x_end, :]
+        dst = histEqualization_ycc(src)
+        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
+        result = inference_segmentor(self.model, dst)
+        cv2.imshow("dst", dst)
+
+        idx = np.argwhere(result[0] == 1)
+        y_idx, x_idx = idx[:, 0], idx[:, 1]
+        x_idx = x_idx + x_start
+        y_idx = y_idx + y_start
+
+        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+        
+        self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+        self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+        self.resize_image()
+    
+    def pointsRoi_histEq_hsv(self, y_start, y_end, x_start, x_end):
+               
+        src = self.img[y_start: y_end, x_start: x_end, :]
+        dst = histEqualization_hsv(src)
+        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
+        result = inference_segmentor(self.model, dst)
+        cv2.imshow("dst", dst)
+
+        idx = np.argwhere(result[0] == 1)
+        y_idx, x_idx = idx[:, 0], idx[:, 1]
+        x_idx = x_idx + x_start
+        y_idx = y_idx + y_start
+
+        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+        
+        self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+        self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+        self.resize_image()
 
 
         
