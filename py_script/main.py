@@ -78,6 +78,7 @@ class MainWindow(QMainWindow, form_class_main,
         self.use_erase = False
         self.set_roi = False
         self.set_roi_256 = False
+        self.set_roi_full = False
         # get_points_roi Mode set_roi_256
         self.get_points_roi = False
         # get_points_roi Mode set_roi
@@ -169,6 +170,7 @@ class MainWindow(QMainWindow, form_class_main,
         self.roiMenu = QMenu()
         self.roiMenu.addAction("256*256", self.roi256)
         self.roiMenu.addAction("Set Rectangle", self.roiRec)
+        self.roiMenu.addAction("Full Image", self.fullImg)
         self.roiAutoLabelButton.setMenu(self.roiMenu)
         self.roiAutoLabelButton.clicked.connect(self.showRoiMenu)
 
@@ -284,10 +286,7 @@ class MainWindow(QMainWindow, form_class_main,
 
 
     def updateLayers(self, x, y):
-        start_time = time.time()
         try : 
-            print(f"label_class {self.label_class}")
-            print(type(self.label_class))
             if self.use_brush :
                 self.layers[self.label_class][y, x] = 1
 
@@ -296,29 +295,24 @@ class MainWindow(QMainWindow, form_class_main,
             
         except BaseException as e : 
             print(e)
-        print("---updateLayers %s seconds ---" % (time.time() - start_time))
-
+        
 
     def updateLabelFromLayers(self, x, y):
-        start_time = time.time()
         self.label[y, x] = 0
         temp_label = self.label[y, x]
-        for idx in reversed(range(1, len(self.layers))): 
-            temp_label = np.where(self.layers[idx][y, x], idx, temp_label) 
+        for lay_idx in reversed(range(1, len(self.layers))): 
+            temp_label = np.where(self.layers[lay_idx][y, x], lay_idx, temp_label) 
         self.label[y, x] = temp_label
 
-        print("---updateLabelFromLayers %s seconds ---" % (time.time() - start_time))
-
+        
     def updateColormapFromLabel(self, x, y):
-        start_time = time.time()
         try :             
             self.colormap[y, x] = self.img[y, x] * self.alpha + self.label_palette[self.label[y, x]] * (1-self.alpha)
-
+            self.colormap[y, x] = blendImageWithColorMap(self.img[y, x], self.label[y, x], self.label_palette, self.alpha)
             self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
         except BaseException as e : 
             print(e)
-        print("---updateLabelFromLayers %s seconds ---" % (time.time() - start_time))
-
+        
 
     def updateLabelandColormap(self, x, y):
         
@@ -462,6 +456,9 @@ class MainWindow(QMainWindow, form_class_main,
 
         elif self.set_roi_256 :
             self.roi256PressPoint(event)
+
+        elif self.set_roi_full :
+            self.roiFullPressPoint(event)
 
         elif self.get_points_roi and self.get_points_roi_setRec == False :
             self.getPointsRoi(event)
@@ -664,6 +661,11 @@ class MainWindow(QMainWindow, form_class_main,
 
         elif event.key() == 70 : # f Key
             print("filling works")
+            
+            self.layers = createLayersFromLabel(self.label, len(self.label_palette))
+            self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+                
+            
             self.layers[self.label_class] = ndimage.binary_fill_holes(self.layers[self.label_class])
 
             for idx in reversed(range(1, len(self.layers))): 
@@ -786,6 +788,213 @@ class MainWindow(QMainWindow, form_class_main,
                 # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
                 # self.resize_image()
 
+
+        elif event.key() == 76: # l key (gr)
+            
+            print(f"histEqualization")
+            saveFolderName = os.path.dirname(self.imgPath)
+            saveFolderName = os.path.dirname(saveFolderName)
+            saveFolderName = os.path.dirname(saveFolderName)
+            saveFolderName = os.path.join(saveFolderName, "Coordinate")
+            saveImgName = os.path.basename(self.imgPath)
+                    
+            csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
+            # 23.01.16 비교 실험 중 파일이름 오류 로 변경
+            # csvImgName = saveImgName.replace("_leftImg8bit_leftImg8bit.png", "_leftImg8bit.csv")
+            
+            f = open(os.path.join(saveFolderName, csvImgName), "r", encoding="cp949", newline='')
+            # print(f"filepath!!: {os.path.join(saveFolderName, csvImgName)}")
+            data = csv.reader(f)
+            self.getPointsList = []
+
+            for row in data:
+                    
+                self.getPointsList.append(row)
+
+            print(self.getPointsList)
+            print(type(self.getPointsList))
+            print(len(self.getPointsList))
+            print(self.getPointsList[0][0])
+            print(type(self.getPointsList[0]))
+
+            for idx in self.getPointsList:
+                print(idx)
+                print(f"idx[0] {idx[0]} {type(idx[0])}")
+                print(f"idx[0] {int(idx[0])} {type(int(idx[0]))}")
+                AutoLabelButton.pointsRoi_histEq_gr(self, int(idx[0]), int(idx[1]), int(idx[2]), int(idx[3]))
+                
+            """
+            저장된 좌표의 탐지 결과와 ROI도 같이 보고 싶을때 사용
+            """
+            # 자동 탐지 라벨링 시 blendImageWithColorMap 함수를 통과 하면서
+            # cv2.rectangle 했던 이미지가 없어짐, 블렌딩시 gt와 left 만 섞어서 쓰기때문
+            for idx in self.getPointsList:
+                print("자동 탐지 라벨링 흔적")
+                rect_start = [int(idx[2]), int(idx[0])]
+                rect_end = [int(idx[3]), int(idx[1])]
+
+                thickness = 2    
+
+                # 변수가 계속 살아남게 하여 이미지에 rect가 계속 쌓이는 형식
+                self.colormap = cv2.rectangle(
+                    self.colormap, rect_start, rect_end, (255, 255, 255), thickness)
+
+                # print(f"rectangle size {rect_start, rect_end}")
+                self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                self.resize_image()
+                
+                
+                # result = inference_segmentor(self.model, self.img[int(idx[0]): int(idx[1]), 
+                #                                                 int(idx[2]): int(idx[3]), :])
+
+                # idx = np.argwhere(result[0] == 1)
+                # y_idx, x_idx = idx[:, 0], idx[:, 1]
+                # x_idx = x_idx + int(idx[2])
+                # y_idx = y_idx + int(idx[0])
+
+                # self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+                
+                # self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+                # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                # self.resize_image()
+
+        elif event.key() == 78: # n key (hsv)
+            
+            print(f"histEqualization")
+            saveFolderName = os.path.dirname(self.imgPath)
+            saveFolderName = os.path.dirname(saveFolderName)
+            saveFolderName = os.path.dirname(saveFolderName)
+            saveFolderName = os.path.join(saveFolderName, "Coordinate")
+            saveImgName = os.path.basename(self.imgPath)
+                    
+            csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
+            # 23.01.16 비교 실험 중 파일이름 오류 로 변경
+            # csvImgName = saveImgName.replace("_leftImg8bit_leftImg8bit.png", "_leftImg8bit.csv")
+            
+            f = open(os.path.join(saveFolderName, csvImgName), "r", encoding="cp949", newline='')
+            # print(f"filepath!!: {os.path.join(saveFolderName, csvImgName)}")
+            data = csv.reader(f)
+            self.getPointsList = []
+
+            for row in data:
+                    
+                self.getPointsList.append(row)
+
+            print(self.getPointsList)
+            print(type(self.getPointsList))
+            print(len(self.getPointsList))
+            print(self.getPointsList[0][0])
+            print(type(self.getPointsList[0]))
+
+            for idx in self.getPointsList:
+                print(idx)
+                print(f"idx[0] {idx[0]} {type(idx[0])}")
+                print(f"idx[0] {int(idx[0])} {type(int(idx[0]))}")
+                AutoLabelButton.pointsRoi_histEq_hsv(self, int(idx[0]), int(idx[1]), int(idx[2]), int(idx[3]))
+                
+            """
+            저장된 좌표의 탐지 결과와 ROI도 같이 보고 싶을때 사용
+            """
+            # 자동 탐지 라벨링 시 blendImageWithColorMap 함수를 통과 하면서
+            # cv2.rectangle 했던 이미지가 없어짐, 블렌딩시 gt와 left 만 섞어서 쓰기때문
+            for idx in self.getPointsList:
+                print("자동 탐지 라벨링 흔적")
+                rect_start = [int(idx[2]), int(idx[0])]
+                rect_end = [int(idx[3]), int(idx[1])]
+
+                thickness = 2    
+
+                # 변수가 계속 살아남게 하여 이미지에 rect가 계속 쌓이는 형식
+                self.colormap = cv2.rectangle(
+                    self.colormap, rect_start, rect_end, (255, 255, 255), thickness)
+
+                # print(f"rectangle size {rect_start, rect_end}")
+                self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                self.resize_image()
+                
+                
+                # result = inference_segmentor(self.model, self.img[int(idx[0]): int(idx[1]), 
+                #                                                 int(idx[2]): int(idx[3]), :])
+
+                # idx = np.argwhere(result[0] == 1)
+                # y_idx, x_idx = idx[:, 0], idx[:, 1]
+                # x_idx = x_idx + int(idx[2])
+                # y_idx = y_idx + int(idx[0])
+
+                # self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+                
+                # self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+                # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                # self.resize_image()
+
+        elif event.key() == 77: # m key (ycc)
+            
+            print(f"histEqualization")
+            saveFolderName = os.path.dirname(self.imgPath)
+            saveFolderName = os.path.dirname(saveFolderName)
+            saveFolderName = os.path.dirname(saveFolderName)
+            saveFolderName = os.path.join(saveFolderName, "Coordinate")
+            saveImgName = os.path.basename(self.imgPath)
+                    
+            csvImgName = saveImgName.replace("_leftImg8bit.png", ".csv")
+            # 23.01.16 비교 실험 중 파일이름 오류 로 변경
+            # csvImgName = saveImgName.replace("_leftImg8bit_leftImg8bit.png", "_leftImg8bit.csv")
+            
+            f = open(os.path.join(saveFolderName, csvImgName), "r", encoding="cp949", newline='')
+            # print(f"filepath!!: {os.path.join(saveFolderName, csvImgName)}")
+            data = csv.reader(f)
+            self.getPointsList = []
+
+            for row in data:
+                    
+                self.getPointsList.append(row)
+
+            print(self.getPointsList)
+            print(type(self.getPointsList))
+            print(len(self.getPointsList))
+            print(self.getPointsList[0][0])
+            print(type(self.getPointsList[0]))
+
+            for idx in self.getPointsList:
+                print(idx)
+                print(f"idx[0] {idx[0]} {type(idx[0])}")
+                print(f"idx[0] {int(idx[0])} {type(int(idx[0]))}")
+                AutoLabelButton.pointsRoi_histEq_ycc(self, int(idx[0]), int(idx[1]), int(idx[2]), int(idx[3]))
+                
+            """
+            저장된 좌표의 탐지 결과와 ROI도 같이 보고 싶을때 사용
+            """
+            # 자동 탐지 라벨링 시 blendImageWithColorMap 함수를 통과 하면서
+            # cv2.rectangle 했던 이미지가 없어짐, 블렌딩시 gt와 left 만 섞어서 쓰기때문
+            for idx in self.getPointsList:
+                print("자동 탐지 라벨링 흔적")
+                rect_start = [int(idx[2]), int(idx[0])]
+                rect_end = [int(idx[3]), int(idx[1])]
+
+                thickness = 2    
+
+                # 변수가 계속 살아남게 하여 이미지에 rect가 계속 쌓이는 형식
+                self.colormap = cv2.rectangle(
+                    self.colormap, rect_start, rect_end, (255, 255, 255), thickness)
+
+                # print(f"rectangle size {rect_start, rect_end}")
+                self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                self.resize_image()
+                
+                
+                # result = inference_segmentor(self.model, self.img[int(idx[0]): int(idx[1]), 
+                #                                                 int(idx[2]): int(idx[3]), :])
+
+                # idx = np.argwhere(result[0] == 1)
+                # y_idx, x_idx = idx[:, 0], idx[:, 1]
+                # x_idx = x_idx + int(idx[2])
+                # y_idx = y_idx + int(idx[0])
+
+                # self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+                
+                # self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
+                # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
+                # self.resize_image()
 
         elif event.key() == 81: # Q key
             self.labelOpacityCheckBox.setChecked(1-self.labelOpacityCheckBox.isChecked())
