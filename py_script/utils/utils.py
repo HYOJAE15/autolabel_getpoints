@@ -8,11 +8,14 @@ import numpy as np
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import QPoint
 
+sys.path.append("./dnn/mmsegmentation")
+from mmseg.apis import inference_segmentor
+
 
 def imread(imgPath):
     img = cv2.imdecode(np.fromfile(imgPath, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
     if img.ndim == 3 : 
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
 
 
@@ -138,9 +141,7 @@ def histEqualization_gr (img):
     ## [Convert to bgrimage]
     dst_gr_bgr = cv2.cvtColor(dst_gr, cv2.COLOR_GRAY2BGR)
     ## [Convert to bgrimage]
-
-    cv2.imshow("dst_gr_bgr", dst_gr_bgr)
-
+    
     return dst_gr_bgr
 
 def histEqualization_hsv (img):
@@ -156,8 +157,6 @@ def histEqualization_hsv (img):
     dst_hsv_merged = cv2.merge([h,s,dst_hsv_v])
     # 마지막으로 hsv2를 다시 BGR 형태로 변경합니다.
     dst_hsv_merged_bgr = cv2.cvtColor(dst_hsv_merged, cv2.COLOR_HSV2BGR)
-
-    cv2.imshow("dst_hsv_merged_bgr", dst_hsv_merged_bgr)
 
     return dst_hsv_merged_bgr
 
@@ -175,6 +174,72 @@ def histEqualization_ycc (img):
     # 마지막으로 yCrCb2를 다시 BGR 형태로 변경합니다.
     dst_ycc_merged_bgr = cv2.cvtColor(dst_ycc_merged, cv2.COLOR_YCrCb2BGR)
 
-    cv2.imshow("dst_ycc_merged_bgr", dst_ycc_merged_bgr)
-
     return dst_ycc_merged_bgr
+
+
+def pointsRoi(model, src, label, label_segmentation,y_start, y_end, x_start, x_end):
+        
+    crop_img = src[y_start: y_end, x_start: x_end, :]
+    result = inference_segmentor(model, crop_img)
+    
+    idx = np.argwhere(result[0] == 1)
+    y_idx, x_idx = idx[:, 0], idx[:, 1]
+    x_idx = x_idx + x_start
+    y_idx = y_idx + y_start
+
+    label[y_idx, x_idx] = label_segmentation
+
+    return label
+
+def make_cityscapes_format (image, save_dir) :
+    temp_img = cv2.imdecode(np.fromfile(image, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+    gt = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
+
+    
+    
+    save_dir_img = os.path.join(save_dir, 'leftImg8bit')
+    save_dir_gt = os.path.join(save_dir, 'gtFine')
+
+    os.makedirs(save_dir_img, exist_ok=True)
+    os.makedirs(save_dir_gt, exist_ok=True)
+
+    img_filename = os.path.basename(image)
+    # img_filename = img_filename.replace('.png', '_leftImg8bit.png')
+    
+    gt_filename = img_filename.replace('_leftImg8bit.png', '_gtFine_labelIds.png')
+
+    is_success, org_img = cv2.imencode(".png", temp_img)
+    org_img.tofile(os.path.join(save_dir_img, img_filename))
+
+    is_success, gt_img = cv2.imencode(".png", gt)
+    gt_img.tofile(os.path.join(save_dir_gt, gt_filename))
+    gt_path = os.path.join(save_dir_gt, gt_filename) 
+    
+    return gt_path
+
+def make_cityscapes_format_imagetype (image, save_dir, image_type) :
+    temp_img = cv2.imdecode(np.fromfile(image, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+    gt = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
+
+    
+    
+    save_dir_img = os.path.join(save_dir, 'leftImg8bit')
+    save_dir_gt = os.path.join(save_dir, 'gtFine')
+
+    os.makedirs(save_dir_img, exist_ok=True)
+    os.makedirs(save_dir_gt, exist_ok=True)
+
+    img_filename = os.path.basename(image)
+    img_filename = img_filename.replace(f'.{image_type}', '_leftImg8bit.png')
+    
+    gt_filename = img_filename.replace('_leftImg8bit.png', '_gtFine_labelIds.png')
+
+    is_success, org_img = cv2.imencode(".png", temp_img)
+    org_img.tofile(os.path.join(save_dir_img, img_filename))
+
+    is_success, gt_img = cv2.imencode(".png", gt)
+    gt_img.tofile(os.path.join(save_dir_gt, gt_filename))
+    gt_path = os.path.join(save_dir_gt, gt_filename) 
+    
+    return gt_path
+
