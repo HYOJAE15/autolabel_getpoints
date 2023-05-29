@@ -42,6 +42,11 @@ def parse_args():
         '--histogram_equalization_type',
         default=None,
         help=('histogram equalization type, ["gr", "hsv", "ycc"]'))
+    parser.add_argument(
+        '--erosion_dilation',
+        default=None,
+        help=('["er", "di"]'))
+    
     
 
     args = parser.parse_args()
@@ -123,6 +128,11 @@ def main():
         y_idx, x_idx = idx[:, 0], idx[:, 1]
         src_label[y_idx, x_idx] = 1
         
+        label_transform = args.erosion_dilation
+        if label_transform == "er":
+            kernel = np.ones((5, 5), np.uint8)
+            src_label = cv2.erode(src_label, kernel, iterations=6)
+
         imwrite(gt_path, src_label)
 
         img_basename = os.path.basename(img)

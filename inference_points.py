@@ -33,11 +33,11 @@ def parse_args():
     parser.add_argument(
         '--damage_type',
         default='crack',
-        help=('damage type to be inference'))
+        help=('damage type to be inference [crack, efflorescence, rebar-exposure, spalling]'))
     parser.add_argument(
         '--image_preprocessing',
-        default='None',
-        help=('image preprocessing histogram equalization [None, gr, hsv, ycc]'))
+        default=None,
+        help=('image preprocessing histogram equalization [None, rgb, gr, hsv, ycc]'))
     
 
     args = parser.parse_args()
@@ -73,12 +73,21 @@ def main() :
     
     img_list = glob(os.path.join(args.img_dir, f"{args.damage_type}", '*.png'))
     
+    """
+    rebar exposure
+    csv: rebarExposure
+    folder: rebar-exposure
+    damage_type: rebar-exposure
+    """
+    
     if args.damage_type == "rebar-exposure" :
-        rebarExposure = "rebarExposure"
-        point_list = glob(os.path.join(args.point_dir, f'{rebarExposure}*'))
+        damage_type = "rebarExposure"
+        
     else :
-        point_list = glob(os.path.join(args.point_dir, f'{args.damage_type}*'))
+        damage_type = args.damage_type
 
+    point_list = glob(os.path.join(args.point_dir, f'{damage_type}*'))
+    
     # print(point_list)
     # for img in img_list :
     #     src = imread(img)
@@ -94,9 +103,20 @@ def main() :
         img_8bit_basename = csv_basename.replace(".csv", "_leftImg8bit.png")
         img_path = os.path.join(args.img_dir, f"{args.damage_type}" ,img_8bit_basename)
         src = imread(img_path)
-        src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
         
-        gt_path = make_cityscapes_format(img_path, args.save_dir)
+        if args.image_preprocessing == None:
+            src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+        elif args.image_preprocessing == "rgb" :
+            pass
+        elif args.image_preprocessing == "gr":
+            src = histEqualization_gr(src)
+        elif args.image_preprocessing == "hsv":
+            src = histEqualization_hsv(src)
+        elif args.image_preprocessing == "ycc":
+            src = histEqualization_ycc(src)
+        
+        
+        gt_path = make_cityscapes_format_points(img_path, args.save_dir, damage_type=args.damage_type)
         
         
         with open(point, "r", encoding="cp949", newline='') as f :
@@ -122,7 +142,7 @@ def main() :
             
             imwrite(gt_path, label)
         
-        color_dir_path = os.path.join(args.save_dir, "color")
+        color_dir_path = os.path.join(args.save_dir, "color", args.damage_type)
         os.makedirs(color_dir_path, exist_ok=True)
         img_color_basename = csv_basename.replace(".csv", "_color.png")
         color_path = os.path.join(color_dir_path, img_color_basename)
