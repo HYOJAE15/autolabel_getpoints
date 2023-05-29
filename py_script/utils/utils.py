@@ -129,7 +129,6 @@ def points_between(x1, y1, x2, y2):
     )
 
 def histEqualization_gr (img):
-    print(f"histeq_gr")
     ## [Convert to grayscale(binary)]
     src_gr = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ## [Convert to grayscale(binary)]
@@ -145,8 +144,6 @@ def histEqualization_gr (img):
     return dst_gr_bgr
 
 def histEqualization_hsv (img):
-    print(f"histeq_hsv")
-
     # hsv 컬러 형태로 변형합니다.
     src_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # h(hue: 색상), s(saturation: 채도), v(value: 명도(색의 밝기))로 컬러 영상을 분리 합니다. 
@@ -161,8 +158,6 @@ def histEqualization_hsv (img):
     return dst_hsv_merged_bgr
 
 def histEqualization_ycc (img):
-    print(f"histeq_ycc")
-
     # YCrCb 컬러 형태로 변환합니다.
     src_ycc = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
     # y(휘도(색의 밝기)), Cr(색차 성분), Cb(색차 성분)로 컬러 영상을 분리 합니다.
@@ -191,14 +186,14 @@ def pointsRoi(model, src, label, label_segmentation,y_start, y_end, x_start, x_e
 
     return label
 
-def make_cityscapes_format (image, save_dir) :
+def make_cityscapes_format_points (image, save_dir, damage_type) :
     temp_img = cv2.imdecode(np.fromfile(image, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
     gt = np.zeros((temp_img.shape[0], temp_img.shape[1]), dtype=np.uint8)
 
     
     
-    save_dir_img = os.path.join(save_dir, 'leftImg8bit')
-    save_dir_gt = os.path.join(save_dir, 'gtFine')
+    save_dir_img = os.path.join(save_dir, 'leftImg8bit', damage_type)
+    save_dir_gt = os.path.join(save_dir, 'gtFine', damage_type)
 
     os.makedirs(save_dir_img, exist_ok=True)
     os.makedirs(save_dir_gt, exist_ok=True)
