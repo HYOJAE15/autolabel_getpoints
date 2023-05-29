@@ -26,8 +26,17 @@ def main():
     autoLabel_path = args.autoLabel_path
     target_class_num = args.target_class_num
 
-    grd_gtf_list = glob(os.path.join(groundTruth_path, '*', '*.png'))
-    atl_gtf_list = glob(os.path.join(autoLabel_path, '*', '*.png'))
+    if target_class_num == 1:
+        target_class = "crack"
+    elif target_class_num == 2:
+        target_class = "efflorescence"
+    elif target_class_num == 3:
+            target_class = "rebar-exposure"
+    elif target_class_num == 4:
+        target_class = "spalling"
+
+    grd_gtf_list = glob(os.path.join(groundTruth_path, f"{target_class}", '*.png'))
+    atl_gtf_list = glob(os.path.join(autoLabel_path, f"{target_class}", '*.png'))
 
     IoU_list = []
     IoU_value_list = []
