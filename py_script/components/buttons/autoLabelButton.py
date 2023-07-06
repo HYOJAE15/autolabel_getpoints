@@ -169,17 +169,9 @@ class AutoLabelButton :
             """
             NOTE: Automatic Labeling by Deep Learning
             """
-            result = inference_segmentor(self.model, self.img[self.rect_start[1]: self.rect_end[1],
-                                            self.rect_start[0]: self.rect_end[0], :])
-
-            print(f'modelListindex {self.label_segmentation-1}')
-
-            cv2.imshow("cropImage", self.img[self.rect_start[1]: self.rect_end[1],
-                                            self.rect_start[0]: self.rect_end[0], :])
+            src = self.src[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :]
             
-
-            print(f'cropImage.shape {self.img[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :].shape}')
-            
+            result = inference_segmentor(self.model, src)
 
             idx = np.argwhere(result[0] == 1)
             y_idx, x_idx = idx[:, 0], idx[:, 1]
@@ -193,8 +185,6 @@ class AutoLabelButton :
             self.resize_image()
 
             
-
-
             """
             NOTE: ROI Box Computer Visualize
             TODO: 최근 시점은 mainwindow에서 보여주고 그전 시점들은 계속 쌓아가자
@@ -231,7 +221,6 @@ class AutoLabelButton :
             """
             
             # Create csv file and save img coordinate, overlap rate
-            print(f"autolabelScripts : {self.imgPath}" )
             self.saveFolderName = os.path.dirname(self.imgPath)
             self.saveFolderName = os.path.dirname(self.saveFolderName)
             self.saveFolderName = os.path.dirname(self.saveFolderName)
@@ -240,27 +229,20 @@ class AutoLabelButton :
             self.saveImgName = os.path.basename(self.imgPath)
                     
             self.csvImgName = self.saveImgName.replace("_leftImg8bit.png", ".csv")
-            if os.path.exists(self.saveFolderName) == False :
-                os.mkdir(self.saveFolderName)
-
-            elif os.path.exists(self.saveFolderName) == True :
-                print("Folder Exists")
-
-            self.points = open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="")
-
-            self.situationLabel.setText(self.csvImgName + "을(를) Coordinate 폴더에 저장하였습니다.")
+            os.makedirs(self.saveFolderName, exist_ok=True)
+                        
+            with open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="") as f :
+                self.situationLabel.setText(self.csvImgName + "을(를) Coordinate 폴더에 저장하였습니다.")
             
 
+            self.overlap_list = [[0,0,0,0]]
                           
             # overlap rate
-            overlap = open(os.path.join(self.saveFolderName, self.csvImgName), "r", encoding="cp949", newline="")
-            overlap_list = csv.reader(overlap)
-            # print(f"overlap_list: {overlap_list}")
-            # coordinate [y_start, y_end, x_start, x_end]
-            self.overlap_list = [[0,0,0,0]]
-            for line in overlap_list :
-                self.overlap_list.append(line)
-                
+            with open(os.path.join(self.saveFolderName, self.csvImgName), "r", encoding="cp949", newline="") as overlap :
+                overlap_list = csv.reader(overlap)
+                for line in overlap_list :
+                    self.overlap_list.append(line)
+                    
             for idx in self.overlap_list[1:]:   
                 start=[int(idx[2]), int(idx[0])]
                 end=[int(idx[3]), int(idx[1])]
@@ -326,8 +308,10 @@ class AutoLabelButton :
                                f"overlap rate:",
                                f"{self.overlap_rate}"]
             
-            csvWriter = csv.writer(self.points)
-            csvWriter.writerow(self.pointsList)
+            
+            with open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="") as f :
+                csvWriter = csv.writer(f)
+                csvWriter.writerow(self.pointsList)
 
             
             """
@@ -400,7 +384,7 @@ class AutoLabelButton :
         self.rect_end_GP[1] = np.clip(self.rect_end_GP[1], 0, self.label.shape[0])
             
 
-        result = inference_segmentor(self.model, self.img[self.rect_start_GP[1]: self.rect_end_GP[1], self.rect_start_GP[0]: self.rect_end_GP[0], :])
+        result = inference_segmentor(self.model, self.src[self.rect_start_GP[1]: self.rect_end_GP[1], self.rect_start_GP[0]: self.rect_end_GP[0], :])
         print(f"GPRrelease Coordinate: {self.rect_start_GP[1], self.rect_end_GP[1], self.rect_start_GP[0], self.rect_end_GP[0]}")
         idx = np.argwhere(result[0] == 1)
         y_idx, x_idx = idx[:, 0], idx[:, 1]
@@ -439,28 +423,21 @@ class AutoLabelButton :
         self.saveFolderName = os.path.join(self.saveFolderName, "Coordinate")
         # 최상위 폴더(gtFine, leftImg8bit)
         self.saveImgName = os.path.basename(self.imgPath)
-                
         self.csvImgName = self.saveImgName.replace("_leftImg8bit.png", ".csv")
-        if os.path.exists(self.saveFolderName) == False :
-            os.mkdir(self.saveFolderName)
-
-        elif os.path.exists(self.saveFolderName) == True :
-            print("Folder Exists")
-
-        self.points = open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="")
-
-        self.situationLabel.setText(self.csvImgName + "을(를) Coordinate 폴더에 저장하였습니다.")
         
-
-        # overlap rate
-        overlap = open(os.path.join(self.saveFolderName, self.csvImgName), "r", encoding="cp949", newline="")
-        overlap_list = csv.reader(overlap)
-        # print(f"overlap_list: {overlap_list}")
-        # coordinate [y_start, y_end, x_start, x_end]
+        os.makedirs(self.saveFolderName, exist_ok=True)
+        
+        with open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="") as f :
+            self.situationLabel.setText(self.csvImgName + "을(를) Coordinate 폴더에 저장하였습니다.")
+        
         self.overlap_list = [[0,0,0,0]]
-        for line in overlap_list :
-            self.overlap_list.append(line)
-            
+        
+        # overlap rate
+        with open(os.path.join(self.saveFolderName, self.csvImgName), "r", encoding="cp949", newline="") as overlap :
+            overlap_list = csv.reader(overlap)
+            for line in overlap_list :
+                self.overlap_list.append(line)
+                
         for idx in self.overlap_list[1:]:   
             start=[int(idx[2]), int(idx[0])]
             end=[int(idx[3]), int(idx[1])]
@@ -507,8 +484,9 @@ class AutoLabelButton :
                            f"overlap rate:",
                            f"{self.overlap_rate}"]
         
-        csvWriter = csv.writer(self.points)
-        csvWriter.writerow(self.pointsList)
+        with open(os.path.join(self.saveFolderName, self.csvImgName), "a", encoding="cp949", newline="") as f :
+            csvWriter = csv.writer(f)
+            csvWriter.writerow(self.pointsList)
 
 
 
@@ -531,16 +509,11 @@ class AutoLabelButton :
                 self.rect_start = self.x_r256-128, self.y_r256-128
                 self.rect_end = self.x_r256+128, self.y_r256+128
 
-            src = self.img[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :]
-
+            src = self.src[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :]
+            
             result = inference_segmentor(self.model, src)
 
-            print(f'modelListindex {self.label_segmentation-1}')
-
             cv2.imshow("cropImage", src)
-            dst = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
-
-            cv2.imshow("cropImage_bgr", dst)
             
 
             print(f'cropImage.shape {self.img[self.rect_start[1]: self.rect_end[1], self.rect_start[0]: self.rect_end[0], :].shape}')
@@ -574,7 +547,7 @@ class AutoLabelButton :
 
         try : 
             
-            src = self.img
+            src = self.src
             result = inference_segmentor(self.model, src)
 
             idx = np.argwhere(result[0] == 1)
@@ -640,8 +613,7 @@ class AutoLabelButton :
         self.rect_end[0] = np.clip(self.rect_end[0], 0, self.label.shape[1])
         self.rect_end[1] = np.clip(self.rect_end[1], 0, self.label.shape[0])
             
-        src = self.img[self.rect_start[1]: y, self.rect_start[0]: x, :]
-        src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+        src = self.src[self.rect_start[1]: y, self.rect_start[0]: x, :]
         dst = histEqualization_hsv(src)
 
         result = inference_segmentor(self.model, src)
@@ -659,59 +631,27 @@ class AutoLabelButton :
 
 
     def pointsRoi(self, y_start, y_end, x_start, x_end):
-        # self.x_r256, self.y_r256 = getScaledPoint(event, self.scale)
-        # if self.x_r256 < 128 and self.y_r256 < 128 :
-        #     self.rect_start = 0, 0
-        #     self.rect_end = self.x_r256+128, self.y_r256+128
-        # elif self.x_r256 < 128 :
-        #     self.rect_start = 0, self.y_r256-128
-        #     self.rect_end = self.x_r256+128, self.y_r256+128
-        # elif self.y_r256 < 128 :
-        #     self.rect_start = self.x_r256-128, 0
-        #     self.rect_end = self.x_r256+128, self.y_r256+128 
-        # else :
-        #     self.rect_start = self.x_r256-128, self.y_r256-128
-        #     self.rect_end = self.x_r256+128, self.y_r256+128
-
-        src = self.img[y_start: y_end, x_start: x_end, :]
-        src = cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
+        
+        src = self.src[y_start: y_end, x_start: x_end, :]
+        result = inference_segmentor(self.model, src)
         cv2.imshow("src", src)
 
-        result = inference_segmentor(self.model, src)
-        
         idx = np.argwhere(result[0] == 1)
         y_idx, x_idx = idx[:, 0], idx[:, 1]
         x_idx = x_idx + x_start
         y_idx = y_idx + y_start
 
-        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+        self.label[y_idx, x_idx] = self.label_segmentation 
         
         self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
         self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
         self.resize_image()
 
         
-          
-        
-
-        # self.rect_start_vi = [x_start, y_start]
-        # self.rect_end_vi = [x_end, y_end]
-
-        # thickness = 2    
-
-        # # 변수가 계속 살아남게 하여 이미지에 rect가 계속 쌓이는 형식
-        # self.colormap = cv2.rectangle(
-        #     self.colormap, self.rect_start_vi, self.rect_end_vi, (255, 255, 255), thickness)
-
-        # # print(f"rectangle size {rect_start, rect_end}")
-        # self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
-        # self.resize_image()
-        
     def pointsRoi_histEq_gr(self, y_start, y_end, x_start, x_end):
                
-        src = self.img[y_start: y_end, x_start: x_end, :]
+        src = self.src[y_start: y_end, x_start: x_end, :]
         dst = histEqualization_gr(src)
-        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
         result = inference_segmentor(self.model, dst)
         cv2.imshow("dst", dst)
 
@@ -720,7 +660,7 @@ class AutoLabelButton :
         x_idx = x_idx + x_start
         y_idx = y_idx + y_start
 
-        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+        self.label[y_idx, x_idx] = self.label_segmentation 
         
         self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
         self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
@@ -728,9 +668,8 @@ class AutoLabelButton :
 
     def pointsRoi_histEq_ycc(self, y_start, y_end, x_start, x_end):
                
-        src = self.img[y_start: y_end, x_start: x_end, :]
+        src = self.src[y_start: y_end, x_start: x_end, :]
         dst = histEqualization_ycc(src)
-        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
         result = inference_segmentor(self.model, dst)
         cv2.imshow("dst", dst)
 
@@ -739,7 +678,7 @@ class AutoLabelButton :
         x_idx = x_idx + x_start
         y_idx = y_idx + y_start
 
-        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+        self.label[y_idx, x_idx] = self.label_segmentation 
         
         self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
         self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
@@ -747,9 +686,8 @@ class AutoLabelButton :
     
     def pointsRoi_histEq_hsv(self, y_start, y_end, x_start, x_end):
                
-        src = self.img[y_start: y_end, x_start: x_end, :]
+        src = self.src[y_start: y_end, x_start: x_end, :]
         dst = histEqualization_hsv(src)
-        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
         result = inference_segmentor(self.model, dst)
         cv2.imshow("dst", dst)
 
@@ -758,7 +696,7 @@ class AutoLabelButton :
         x_idx = x_idx + x_start
         y_idx = y_idx + y_start
 
-        self.label[y_idx, x_idx] = self.label_segmentation # label_palette 의 인덱스 색깔로 표현
+        self.label[y_idx, x_idx] = self.label_segmentation 
         
         self.colormap = blendImageWithColorMap(self.img, self.label, self.label_palette, self.alpha)
         self.pixmap = QPixmap(cvtArrayToQImage(self.colormap))
