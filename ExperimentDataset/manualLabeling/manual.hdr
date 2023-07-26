@@ -1,1 +1,0 @@
-{"project_name": "manual", "folder_path": "C:/Users/tls15/\ubc14\ud0d5 \ud654\uba74/ComparativeExperiment/autolabel_getpoints/ExperimentDataset/manualLabeling", "categories": [["Background", "[0, 0, 0]"], ["crack", "[255, 0, 0]"], ["efflorescence", "[0, 255, 0]"], ["rebar-exposure", "[255, 255, 0]"], ["spalling", "[0, 0, 255]"]]}
