@@ -1,3 +1,9 @@
+"""
+신속 라벨링 시스템의 성능 검증을 위한 비교실험
+일관성 검증을 위한 라벨러 간의 gtFine 결과 비교 
+"""
+
+
 import os
 import argparse
 
@@ -32,10 +38,20 @@ def main():
     
     target_class_num = args.target_class_num
 
-    gt_1_list = glob(os.path.join(gtFine_1_path, '*', '*.png'))
-    gt_2_list = glob(os.path.join(gtFine_2_path, '*', '*.png'))
-    gt_3_list = glob(os.path.join(gtFine_3_path, '*', '*.png'))
-    gt_4_list = glob(os.path.join(gtFine_4_path, '*', '*.png'))
+    if target_class_num == 1:
+        target = "crack"
+    elif target_class_num == 2:
+        target = "efflorescence"
+    elif target_class_num == 3:
+        target = "rebar-exposure"
+    elif target_class_num == 4:
+        target = "spalling"
+
+
+    gt_1_list = glob(os.path.join(gtFine_1_path, f'{target}', '*.png'))
+    gt_2_list = glob(os.path.join(gtFine_2_path, f'{target}', '*.png'))
+    gt_3_list = glob(os.path.join(gtFine_3_path, f'{target}', '*.png'))
+    gt_4_list = glob(os.path.join(gtFine_4_path, f'{target}', '*.png'))
     
     IoU_list_1and2 = []
     IoU_list_1and3 = []
@@ -64,9 +80,8 @@ def main():
         gt_4_img[gt_4_img != target_class_num] = 0
         gt_4_img[gt_4_img == target_class_num] = 1 
 
-
         
-        if [1] in np.unique(gt_1_img) or [1] in np.unique(gt_2_img) or [1] in np.unique(gt_3_img) or [1] in np.unique(gt_4_img):
+        if [1] in np.unique(gt_1_img) and [1] in np.unique(gt_2_img) and [1] in np.unique(gt_3_img) and [1] in np.unique(gt_4_img):
 
             # calculate iou
             iou_1and2 = iou(gt_1_img, gt_2_img)
