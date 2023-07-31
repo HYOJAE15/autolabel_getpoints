@@ -80,7 +80,7 @@ def main():
     img_list = glob(os.path.join(args.img_dir, f'*.{args.image_type}'))
 
     palette = np.array([[0, 0, 0],
-               [0, 255, 0],
+               [255, 0, 0],
                [0, 255, 0],
                [0, 255, 255], 
                [255, 0, 0]])
@@ -106,8 +106,10 @@ def main():
         histEqualization_type = args.histogram_equalization_type
         
         # histEqualization = histEqualization_gr(src) if histEqualization_type == 'gr' 
+        if histEqualization_type == None :
+            pass
         
-        if histEqualization_type == "gr" :
+        elif histEqualization_type == "gr" :
             src = histEqualization_gr(src)
             
         elif histEqualization_type == "hsv" :
@@ -129,9 +131,14 @@ def main():
         src_label[y_idx, x_idx] = 1
         
         label_transform = args.erosion_dilation
-        if label_transform == "er":
+        if label_transform == None:
+            pass
+        elif label_transform == "er":
             kernel = np.ones((5, 5), np.uint8)
-            src_label = cv2.erode(src_label, kernel, iterations=6)
+            src_label = cv2.erode(src_label, kernel, iterations=1)
+        elif label_transform == "di" :
+            kernel = np.ones((5, 5), np.uint8)
+            src_label = cv2.dilate(src_label, kernel, iterations=1)
 
         imwrite(gt_path, src_label)
 
