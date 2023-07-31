@@ -109,6 +109,9 @@ def main():
     print(f"mIoU_2and4: {np.mean(IoU_list_2and4)} ({np.mean(IoU_list_2and4)*100}%)")
     print(f"mIoU_3and4: {np.mean(IoU_list_3and4)} ({np.mean(IoU_list_3and4)*100}%)")
     
+    Total = [np.mean(IoU_list_1and2), np.mean(IoU_list_1and3), np.mean(IoU_list_1and4), np.mean(IoU_list_2and3), np.mean(IoU_list_2and4), np.mean(IoU_list_3and4)]
+    
+    print(f"Total mIoU: {np.mean(Total)} ({np.mean(Total)*100}%)")
             
             
             
