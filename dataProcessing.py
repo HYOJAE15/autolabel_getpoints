@@ -35,21 +35,16 @@ args = parser.parse_args()
 
 
 def main():
-    print("dataProcessing")
     
     labeler_name = args.labeler_name
     coordinateData_path = args.coordinateData_path
     comparativeData_path = args.comparativeData_path
 
-    print(f"coordinate: {coordinateData_path}")
-    print(f"comparative: {comparativeData_path}")
-
+    
     coordinateData_list = glob(os.path.join(coordinateData_path, '*.csv'))
     comparativeData_list = glob(os.path.join(comparativeData_path, '*.xlsx'))
 
-    # print(f"coordinate_list: {coordinateData_list}")
-    print(f"comparative_file: {comparativeData_list}")
-
+    
     MOR_list = []
     for File in coordinateData_list:
         file_name = os.path.basename(File)
@@ -57,26 +52,19 @@ def main():
             coordinatereader = csv.reader(csvfile, delimiter=",", quotechar='|')
             OR_list = []
             for row in coordinatereader:
-                # print(row[-1].split(":"))
+                
                 if 'overlap rate' in row[-1].split(":"):
                     OR_list.append(row[-1].split(":")[-1])
 
                 else :
                     OR_list.append(row[-1])
                 
-                # print(f"coordinate_list: {coordinate_list}")
-                # print(", ".join(row))
-                # print(f"row: {row}")
                 
-                # print(f"damageClassIdx: {row[-3]}, OR: {row[-1]}")
-            # print(f"OR_list: {OR_list}")
             float_OR_list = list(map(float, OR_list))
-            # print(f"float_OR_list: {float_OR_list}")
+            
             MOR = sum(float_OR_list)/len(float_OR_list)
-            # print(f"MOR: {MOR}")
             MOR_list.append([file_name, len(float_OR_list), MOR])
-    # print(f"MOR: {MOR_list}, len: {len(MOR_list)}")
-
+    
     
     # comparative data analysis
     comparativeData_file = comparativeData_list[-1]
@@ -85,14 +73,13 @@ def main():
                                  sheet_name=None, 
                                  engine="openpyxl", 
                                  header=None,
-                                 names=["img", "auto", "manual", "manual_2차", "IoU", "IoU_2차"], 
+                                 names=["img", "auto", "manual", "manual_2차", "IoU", "IoU_2차", "IoU_BGR"], 
                                  index_col=None, 
                                  skiprows=2,
                                  na_values=None,
-                                 usecols= "B, C, D, E, F, G",
-                                 dtype={"img": str, "auto": float, "manual": float, "manual_2차": float, "IoU": float, "IoU_2차": float}
+                                 usecols= "B, C, D, E, F, G, H",
+                                 dtype={"img": str, "auto": float, "manual": float, "manual_2차": float, "IoU": float, "IoU_2차": float, "IoU_BGR": float}
                                  )
-    # print(comp_xl_file)
     xl_sheet_list=["crack", "efflorescence", "rebar-exposure", "spalling"]
     idx = 0
     
@@ -101,93 +88,88 @@ def main():
     MOR_rebarexposure_idx=[]
     MOR_spalling_idx=[]
     for i in list(range(len(MOR_list))):
-        print(MOR_list[i])
         img_name = MOR_list[i][0]
         img_name_split = MOR_list[i][0].split("_")
         img_name_damage = img_name_split[0]
-        print(img_name_damage)
-        # comp_xl_file_to_list[i][0]
+        
         if img_name_damage == "crack":
-            print(MOR_list.index(MOR_list[i]))
+            
             MOR_crack_idx.append(MOR_list.index(MOR_list[i]))
+        
         elif img_name_damage == "efflorescence":
-            print(MOR_list.index(MOR_list[i]))
+            
             MOR_efflorescence_idx.append(MOR_list.index(MOR_list[i]))
+        
         elif img_name_damage == "rebarExposure":
-            print(MOR_list.index(MOR_list[i]))
+            
             MOR_rebarexposure_idx.append(MOR_list.index(MOR_list[i]))
+        
         elif img_name_damage == "spalling":
-            print(MOR_list.index(MOR_list[i]))
+            
             MOR_spalling_idx.append(MOR_list.index(MOR_list[i]))
 
-    print(MOR_crack_idx)
-    print(MOR_efflorescence_idx)
-    print(MOR_rebarexposure_idx)
-    print(MOR_spalling_idx)
-
+    
 
 
     for sheet_name in xl_sheet_list:
-        print(f"{sheet_name}")
-        print(f"type: {type(comp_xl_file[sheet_name])}")
-        print(f"{comp_xl_file[sheet_name]}")
+        
         comp_xl_file_to_list = comp_xl_file[sheet_name].values.tolist()
 
-        print(f"{comp_xl_file_to_list}")
-        print(f"{type(comp_xl_file_to_list)}")
-        print(f"{comp_xl_file_to_list[0][3]}")
-        print(f"{type(comp_xl_file_to_list[0][3])}")
-        print(f"{len(comp_xl_file_to_list)}")
-        print(list(range(len(comp_xl_file_to_list))))
         if sheet_name == "crack":
 
             for idx_MOR, idx in zip(MOR_crack_idx, list(range(len(MOR_crack_idx)))):
-                print(idx_MOR)
                 auto_time=comp_xl_file_to_list[idx][1]
                 manual_time=comp_xl_file_to_list[idx][2]
                 manual_time_2 = comp_xl_file_to_list[idx][3]
                 iou=comp_xl_file_to_list[idx][4]
                 iou_2=comp_xl_file_to_list[idx][5]
+                iou_bgr = comp_xl_file_to_list[idx][6]
                 improvement_rate=(manual_time-auto_time)/(manual_time)
                 improvement_rate_2=((manual_time + manual_time_2)-auto_time)/(manual_time + manual_time_2)
 
-                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2])
+                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2, iou_bgr])
+        
         elif sheet_name == "efflorescence":
+            
             for idx_MOR, idx in zip(MOR_efflorescence_idx, list(range(len(MOR_crack_idx)))):
-                print(idx_MOR)
                 auto_time=comp_xl_file_to_list[idx][1]
                 manual_time=comp_xl_file_to_list[idx][2]
                 manual_time_2 = comp_xl_file_to_list[idx][3]
                 iou=comp_xl_file_to_list[idx][4]
                 iou_2=comp_xl_file_to_list[idx][5]
+                iou_bgr = comp_xl_file_to_list[idx][6]
                 improvement_rate=(manual_time-auto_time)/(manual_time)
                 improvement_rate_2=((manual_time + manual_time_2)-auto_time)/(manual_time + manual_time_2)
 
-                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2])
+                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2, iou_bgr])
+        
         elif sheet_name == "rebar-exposure":
+            
             for idx_MOR, idx in zip(MOR_rebarexposure_idx, list(range(len(MOR_crack_idx)))):
-                print(idx_MOR)
                 auto_time=comp_xl_file_to_list[idx][1]
                 manual_time=comp_xl_file_to_list[idx][2]
                 manual_time_2 = comp_xl_file_to_list[idx][3]
                 iou=comp_xl_file_to_list[idx][4]
                 iou_2=comp_xl_file_to_list[idx][5]
+                iou_bgr = comp_xl_file_to_list[idx][6]
                 improvement_rate=(manual_time-auto_time)/(manual_time)
                 improvement_rate_2=((manual_time + manual_time_2)-auto_time)/(manual_time + manual_time_2)
 
-                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2])
+                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2, iou_bgr])
+        
         elif sheet_name == "spalling":
+            
             for idx_MOR, idx in zip(MOR_spalling_idx, list(range(len(MOR_crack_idx)))):
-                print(idx_MOR)
                 auto_time=comp_xl_file_to_list[idx][1]
                 manual_time=comp_xl_file_to_list[idx][2]
                 manual_time_2 = comp_xl_file_to_list[idx][3]
                 iou=comp_xl_file_to_list[idx][4]
                 iou_2=comp_xl_file_to_list[idx][5]
+                iou_bgr = comp_xl_file_to_list[idx][6]
                 improvement_rate=(manual_time-auto_time)/(manual_time)
                 improvement_rate_2=((manual_time + manual_time_2)-auto_time)/(manual_time + manual_time_2)
 
-                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2])
+                MOR_list[idx_MOR].extend([auto_time, manual_time, manual_time_2, improvement_rate, improvement_rate_2, iou, iou_2, iou_bgr])
         
             
                             
@@ -198,25 +180,30 @@ def main():
     for i in MOR_damage_list:
         iou_list = []    
         iou_list_2 = []
+        iou_list_bgr = []
+        mir_list = []
         for i_Mdl in i:
-            iou_list.append(MOR_list[i_Mdl][-2])
-            iou_list_2.append(MOR_list[i_Mdl][-1])
+            iou_list.append(MOR_list[i_Mdl][-3])
+            iou_list_2.append(MOR_list[i_Mdl][-2])
+            iou_list_bgr.append(MOR_list[i_Mdl][-1])
+            if MOR_list[i_Mdl][-4] > 0:
+                mir_list.append(MOR_list[i_Mdl][-4])
+            else :
+                mir_list.append(MOR_list[i_Mdl][-5])
         mIoU=sum(iou_list)/len(iou_list)
         mIoU_2=sum(iou_list_2)/len(iou_list_2)
-        print(i)
-        print(mIoU)
-        print(mIoU_2)
+        mIoU_BGR=sum(iou_list_bgr)/len(iou_list_bgr)
+        mIR = sum(mir_list)/len(mir_list)
         iou_idx = i[-1]
-        MOR_list[iou_idx].extend([mIoU, mIoU_2])
+        MOR_list[iou_idx].extend([mIoU, mIoU_2, mIoU_BGR, mIR])
         
 
 
         
-    # comparativeAnalysis = open(os.path.join(comparativeData_path, "analysisData.csv"), "w", encoding="cp949", newline="")
-    fields = ["File", "Num of detect", "MOR", "auto time (sec)", "manual time (sec)", "manual time 2차 (sec)", "IR", "IR 2차", "IoU", "IoU 2차", "mIoU", "mIoU 2차"]
+    fields = ["File", "Num of detect", "MOR", "auto time (sec)", "manual time (sec)", "manual time 2차 (sec)", "IR", "IR 2차", "IoU", "IoU 2차", "IoU BGR", "mIoU", "mIoU 2차", "mIoU BGR", "mIR"]
     
     analysisData_filename = f"{labeler_name}_analysisData.csv"
-    # analysisData_filename.format(name=labeler_name)
+    
     analysisData = os.path.join(comparativeData_path, analysisData_filename)
     
 
