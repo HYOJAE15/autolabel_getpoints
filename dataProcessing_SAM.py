@@ -27,6 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("labeler_name", help="Typing your name", type=str)
 parser.add_argument("manualData_path", help="File path to manual labeling Data", type=str)
 parser.add_argument("automaticData_path", help="File path to automatic labeling Data", type=str)
+parser.add_argument("coordinateData_path", help="Folder path to Coordinate for Coordinate Data", type=str)
 
 # parser.add_argument("--target_class_num", default=1, type=int)
 
@@ -38,6 +39,7 @@ def main():
     labeler_name = args.labeler_name
     manualData_path = args.manualData_path
     automaticData_path = args.automaticData_path
+    coordinateData_path = args.coordinateData_path
     
     comp_manual_xl_file = pd.read_excel(
                                  manualData_path, 
@@ -65,6 +67,111 @@ def main():
                                  dtype={"img": int, "auto": float, "IoU": float}
                                  )
     
+    coordinateData_list = glob(os.path.join(coordinateData_path, '*.csv'))
+
+    
+    efflorescence_MOR_list = []
+    rebarExposure_MOR_list = []
+    spalling_MOR_list = []
+    
+    for File in coordinateData_list:
+        file_name = os.path.basename(File)
+        file_name_split = file_name.split("_")
+        damage_name = file_name_split[0]
+
+        if damage_name == "efflorescence":
+            with open(File, newline="") as csvfile:
+                coordinatereader = csv.reader(csvfile, delimiter=",", quotechar='|')
+                next(coordinatereader)
+                OR_list = []
+                ROI_list = []
+                Prompt_list = []
+                for row in coordinatereader:
+                    
+                    ROI = f"{row[1]}, {row[2]}, {row[3]}, {row[4]}"
+                    ROI_list.append(ROI)
+
+                    Prompt = row[6]
+                    Prompt_list.append(Prompt)
+
+                    if 0 < float(row[5]) < 1:
+                        OR_list.append(row[5])
+                    
+                    
+                float_OR_list = list(map(float, OR_list))
+                unique_ROI_list = np.unique(ROI_list)
+
+                if len(float_OR_list) >= 1 :
+                    MOR = sum(float_OR_list)/len(float_OR_list)
+                elif len(float_OR_list) == 0 :
+                    MOR = 0
+                numROI = len(unique_ROI_list)
+                numPrompt = len(Prompt_list)
+
+                efflorescence_MOR_list.append([file_name, numPrompt, numROI, MOR])
+        if damage_name == "rebarExposure":
+            with open(File, newline="") as csvfile:
+                coordinatereader = csv.reader(csvfile, delimiter=",", quotechar='|')
+                next(coordinatereader)
+                OR_list = []
+                ROI_list = []
+                Prompt_list = []
+                for row in coordinatereader:
+                    
+                    ROI = f"{row[1]}, {row[2]}, {row[3]}, {row[4]}"
+                    ROI_list.append(ROI)
+
+                    Prompt = row[6]
+                    Prompt_list.append(Prompt)
+
+                    if 0 < float(row[5]) < 1:
+                        OR_list.append(row[5])
+                    
+                    
+                float_OR_list = list(map(float, OR_list))
+                unique_ROI_list = np.unique(ROI_list)
+
+                if len(float_OR_list) >= 1 :
+                    MOR = sum(float_OR_list)/len(float_OR_list)
+                elif len(float_OR_list) == 0 :
+                    MOR = 0
+                numROI = len(unique_ROI_list)
+                numPrompt = len(Prompt_list)
+
+                rebarExposure_MOR_list.append([file_name, numPrompt, numROI, MOR])
+        if damage_name == "spalling":
+            with open(File, newline="") as csvfile:
+                coordinatereader = csv.reader(csvfile, delimiter=",", quotechar='|')
+                next(coordinatereader)
+                OR_list = []
+                ROI_list = []
+                Prompt_list = []
+                for row in coordinatereader:
+                    
+                    ROI = f"{row[1]}, {row[2]}, {row[3]}, {row[4]}"
+                    ROI_list.append(ROI)
+
+                    Prompt = row[6]
+                    Prompt_list.append(Prompt)
+
+                    if 0 < float(row[5]) < 1:
+                        OR_list.append(row[5])
+                    
+                    
+                float_OR_list = list(map(float, OR_list))
+                unique_ROI_list = np.unique(ROI_list)
+
+                if len(float_OR_list) >= 1 :
+                    MOR = sum(float_OR_list)/len(float_OR_list)
+                elif len(float_OR_list) == 0 :
+                    MOR = 0
+                numROI = len(unique_ROI_list)
+                numPrompt = len(Prompt_list)
+
+                spalling_MOR_list.append([file_name, numPrompt, numROI, MOR])
+            
+
+
     xl_sheet_list = ["efflorescence", "rebar-exposure", "spalling"]
     
     efflorescence_list = []
@@ -97,7 +204,11 @@ def main():
                 else :
                     improvement_rate = "nan"
 
-                efflorescence_list.append([img, auto_time, manual_time, improvement_rate, iou])
+                numPrompt = efflorescence_MOR_list[i][1]
+                numROI = efflorescence_MOR_list[i][2]
+                MOR = efflorescence_MOR_list[i][3]
+
+                efflorescence_list.append([img, numROI, MOR, numPrompt, auto_time, manual_time, improvement_rate, iou])
     
         elif sheet_name == "rebar-exposure":
 
@@ -120,7 +231,11 @@ def main():
                 else :
                     improvement_rate = "nan"
 
-                rebarExposure_list.append([img, auto_time, manual_time, improvement_rate, iou])
+                numPrompt = rebarExposure_MOR_list[i][1]
+                numROI = rebarExposure_MOR_list[i][2]
+                MOR = rebarExposure_MOR_list[i][3]
+
+                rebarExposure_list.append([img, numROI, MOR, numPrompt, auto_time, manual_time, improvement_rate, iou])
     
         elif sheet_name == "spalling":
 
@@ -143,8 +258,14 @@ def main():
                 else :
                     improvement_rate = "nan"
 
-                spalling_list.append([img, auto_time, manual_time, improvement_rate, iou])
+                numPrompt = spalling_MOR_list[i][1]
+                numROI = spalling_MOR_list[i][2]
+                MOR = spalling_MOR_list[i][3]
 
+                spalling_list.append([img, numROI, MOR, numPrompt, auto_time, manual_time, improvement_rate, iou])
+
+
+    
 
     
     total_list = efflorescence_list + rebarExposure_list + spalling_list
@@ -152,7 +273,7 @@ def main():
 
 
         
-    fields = ["File", "auto time (sec)", "manual time (sec)", "IR", "IoU"]
+    fields = ["File", "Num of ROI", "MOR", "Num of Prompt", "auto time (sec)", "manual time (sec)", "IR", "IoU"]
     
     analysisData_filename = f"{labeler_name}_SAM_analysisData.csv"
     analysisData = os.path.join(os.path.dirname(manualData_path), analysisData_filename)
